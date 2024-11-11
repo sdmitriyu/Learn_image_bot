@@ -43,7 +43,11 @@ def get_options_keyboard():
     pixelate_btn = types.InlineKeyboardButton("Pixelate", callback_data="pixelate")
     ascii_btn = types.InlineKeyboardButton("ASCII Art", callback_data="ascii")
     negative_btn = types.InlineKeyboardButton('Negative', callback_data='negative')
+    reflection_horizontal_btn = types.InlineKeyboardButton('Reflection_horizontal',
+                                                           callback_data='reflection_horizontal')
+    reflection_vertical_btn = types.InlineKeyboardButton('Reflection_vertical', callback_data='reflection_vertical')
     keyboard.add(pixelate_btn, ascii_btn, negative_btn)
+    keyboard.add(reflection_horizontal_btn, reflection_vertical_btn)
     return keyboard
 
 
@@ -59,6 +63,12 @@ def callback_query(call):
     elif call.data == 'negative':
         bot.answer_callback_query(call.id, 'Делаем из фотографии негатив...')
         negative_photo(call.message)
+    elif call.data == 'reflection_horizontal':
+        bot.answer_callback_query(call.id, 'Отражаем изображение по горизонтали')
+        mirror_image(call.message, direction='horizontal')
+    elif call.data == 'reflection_vertical':
+        bot.answer_callback_query(call.id, 'Отражаем изображение по вертикали')
+        mirror_image(call.message, direction='vertical')
 
 
 # Функция преобразования изображения в ASCII и отправки пользователю
@@ -147,6 +157,38 @@ def negative_photo(message):
 
     # Отправляем изображение обратно в чат
     bot.send_photo(message.chat.id, output_stream, caption="Ваше изображение в негативе!")
+
+
+# Функция отражения изображения
+def mirror_image(message, direction):
+
+    horizontal_image = None
+    vertical_image = None
+
+    photo_id = user_states[message.chat.id]['photo']
+    file_info = bot.get_file(photo_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    image_stream = io.BytesIO(downloaded_file)
+
+    # Загружаем изображение
+    image = Image.open(image_stream)
+
+    if direction == 'horizontal':
+        # Отражение по горизонтали (лево-право)
+        horizontal_image = image.transpose(Image.FLIP_LEFT_RIGHT)
+        output_image = horizontal_image  # Сохраняем отраженное изображение
+    elif direction == 'vertical':
+        # Отражение по вертикали (вверх-вниз)
+        vertical_image = image.transpose(Image.FLIP_TOP_BOTTOM)
+        output_image = vertical_image  # Сохраняем отраженное изображение
+    else:
+        raise ValueError("Direction must be 'horizontal' or 'vertical'")
+
+    # Сохраняем результирующее изображение в байтовый поток
+    output_stream = io.BytesIO()
+    output_image.save(output_stream, format="JPEG")
+    output_stream.seek(0)  # Устанавливаем указатель потока на начало
+    bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
 
 
 # Запуск бота

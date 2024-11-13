@@ -46,8 +46,10 @@ def get_options_keyboard():
     reflection_horizontal_btn = types.InlineKeyboardButton('Reflection_horizontal',
                                                            callback_data='reflection_horizontal')
     reflection_vertical_btn = types.InlineKeyboardButton('Reflection_vertical', callback_data='reflection_vertical')
+    heat_map_btn = types.InlineKeyboardButton('Тепловая карта', callback_data='Heat map')
     keyboard.add(pixelate_btn, ascii_btn, negative_btn)
     keyboard.add(reflection_horizontal_btn, reflection_vertical_btn)
+    keyboard.add(heat_map_btn)
     return keyboard
 
 
@@ -69,6 +71,9 @@ def callback_query(call):
     elif call.data == 'reflection_vertical':
         bot.answer_callback_query(call.id, 'Отражаем изображение по вертикали')
         mirror_image(call.message, direction='vertical')
+    elif call.data == 'Heat map':
+        bot.answer_callback_query(call.id, 'Создаём тепловую карту')
+        convert_to_heatmap(call.message)
 
 
 # Функция преобразования изображения в ASCII и отправки пользователю
@@ -187,6 +192,26 @@ def mirror_image(message, direction):
     # Сохраняем результирующее изображение в байтовый поток
     output_stream = io.BytesIO()
     output_image.save(output_stream, format="JPEG")
+    output_stream.seek(0)  # Устанавливаем указатель потока на начало
+    bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
+
+
+# Преобразование изображения в тепловую карту
+def convert_to_heatmap(message):
+    photo_id = user_states[message.chat.id]['photo']
+    file_info = bot.get_file(photo_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    image_stream = io.BytesIO(downloaded_file)
+
+    # Загружаем изображение
+    image = Image.open(image_stream).convert('L')
+
+    # создаём тепловую карту
+    heat_map_image = ImageOps.colorize(image, 'blue', 'red')
+
+    # Сохраняем результирующее изображение в байтовый поток
+    output_stream = io.BytesIO()
+    heat_map_image.save(output_stream, format="JPEG")
     output_stream.seek(0)  # Устанавливаем указатель потока на начало
     bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
 

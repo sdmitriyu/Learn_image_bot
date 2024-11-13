@@ -57,3 +57,7 @@ def negative_photo(message):
 def mirror_image(message, direction):
 - отражение изображения
 
+def convert_to_heatmap(message):
+- Преобразование изображения в тепловую карту
+
+

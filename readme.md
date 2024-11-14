@@ -60,4 +60,7 @@ def mirror_image(message, direction):
 def convert_to_heatmap(message):
 - Преобразование изображения в тепловую карту
 
+def resize_for_sticker(message):
+- Изменяем размера изображения для стикера
+
 

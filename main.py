@@ -1,4 +1,3 @@
-import PIL.ImageOps
 import telebot
 from PIL import Image, ImageOps
 import io
@@ -47,9 +46,10 @@ def get_options_keyboard():
                                                            callback_data='reflection_horizontal')
     reflection_vertical_btn = types.InlineKeyboardButton('Reflection_vertical', callback_data='reflection_vertical')
     heat_map_btn = types.InlineKeyboardButton('Тепловая карта', callback_data='Heat map')
+    resize_for_sticker_btn = types.InlineKeyboardButton('Изготовление стикера', callback_data='making_sticker')
     keyboard.add(pixelate_btn, ascii_btn, negative_btn)
     keyboard.add(reflection_horizontal_btn, reflection_vertical_btn)
-    keyboard.add(heat_map_btn)
+    keyboard.add(heat_map_btn, resize_for_sticker_btn)
     return keyboard
 
 
@@ -74,6 +74,9 @@ def callback_query(call):
     elif call.data == 'Heat map':
         bot.answer_callback_query(call.id, 'Создаём тепловую карту')
         convert_to_heatmap(call.message)
+    elif call.data == 'making_sticker':
+        bot.answer_callback_query(call.id, 'Изготавливаю стикер на основе вашего изображения')
+        resize_for_sticker(call.message)
 
 
 # Функция преобразования изображения в ASCII и отправки пользователю
@@ -212,6 +215,39 @@ def convert_to_heatmap(message):
     # Сохраняем результирующее изображение в байтовый поток
     output_stream = io.BytesIO()
     heat_map_image.save(output_stream, format="JPEG")
+    output_stream.seek(0)  # Устанавливаем указатель потока на начало
+    bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
+
+
+# Изменяем размера изображения для стикера
+def resize_for_sticker(message):
+    new_width = None
+    new_height = None
+
+    photo_id = user_states[message.chat.id]['photo']
+    file_info = bot.get_file(photo_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    image_stream = io.BytesIO(downloaded_file)
+
+    # Загружаем изображение
+    image = Image.open(image_stream).convert('RGB')
+
+    # Адаптируем размер изображения для использования в качестве стикера
+    width, height = image.size
+    if width >= height:
+        new_width = 125
+        new_height = int(new_width * height / width)
+    elif height >= width:
+        new_height = 125
+        new_width = int(new_height * width / height)
+    elif height == width:
+        image_resize = image.resize((125, 125), Image.LANCZOS)
+
+    image_resize = image.resize((new_width, new_height), Image.LANCZOS)
+
+    # Отправляем стикер пользователю
+    output_stream = io.BytesIO()
+    image_resize.save(output_stream, format="JPEG")
     output_stream.seek(0)  # Устанавливаем указатель потока на начало
     bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
 

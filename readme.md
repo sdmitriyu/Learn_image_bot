@@ -63,4 +63,10 @@ def convert_to_heatmap(message):
 def resize_for_sticker(message):
 - Изменяем размера изображения для стикера
 
+def jokes_rend(message, JOKES):
+- Функция вызывает случайную шутку из списка JOKES
+
+def callback_query(call):
+- Обработчик вызова (callback)
+
 

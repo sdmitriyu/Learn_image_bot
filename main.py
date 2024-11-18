@@ -2,7 +2,9 @@ import telebot
 from PIL import Image, ImageOps
 import io
 from telebot import types
+import random
 from conf import TOKEN
+from data import JOKES
 
 bot = telebot.TeleBot(TOKEN)
 user_states = {}  # Хранение информации о пользователях
@@ -47,9 +49,11 @@ def get_options_keyboard():
     reflection_vertical_btn = types.InlineKeyboardButton('Reflection_vertical', callback_data='reflection_vertical')
     heat_map_btn = types.InlineKeyboardButton('Тепловая карта', callback_data='Heat map')
     resize_for_sticker_btn = types.InlineKeyboardButton('Изготовление стикера', callback_data='making_sticker')
+    random_jokes_btn = types.InlineKeyboardButton('Случайная шутка', callback_data='random_jokes')
     keyboard.add(pixelate_btn, ascii_btn, negative_btn)
     keyboard.add(reflection_horizontal_btn, reflection_vertical_btn)
     keyboard.add(heat_map_btn, resize_for_sticker_btn)
+    keyboard.add(random_jokes_btn)
     return keyboard
 
 
@@ -77,6 +81,9 @@ def callback_query(call):
     elif call.data == 'making_sticker':
         bot.answer_callback_query(call.id, 'Изготавливаю стикер на основе вашего изображения')
         resize_for_sticker(call.message)
+    elif call.data == 'random_jokes':
+        bot.answer_callback_query(call.id, 'Случайная шутка')
+        jokes_rend(call.message, JOKES)
 
 
 # Функция преобразования изображения в ASCII и отправки пользователю
@@ -250,6 +257,16 @@ def resize_for_sticker(message):
     image_resize.save(output_stream, format="JPEG")
     output_stream.seek(0)  # Устанавливаем указатель потока на начало
     bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
+
+# Функция вызывает случайную шутку из списка JOKES
+def jokes_rend(message, JOKES):
+    joke = random.choice(JOKES)
+    bot.reply_to(message, joke)
+
+# Обработчик вызова (callback)
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    jokes_rend(call.message, JOKES)
 
 
 # Запуск бота

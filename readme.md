@@ -69,4 +69,6 @@ def jokes_rend(message, JOKES):
 def callback_query(call):
 - Обработчик вызова (callback)
 
+def compliment_rend(message, COMPLIMENTS):
+- Функция вызывает случайный комплимент из списка COMPLIMENTS
 

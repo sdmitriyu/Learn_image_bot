@@ -72,3 +72,5 @@ def callback_query(call):
 def compliment_rend(message, COMPLIMENTS):
 - Функция вызывает случайный комплимент из списка COMPLIMENTS
 
+def coin_rend(message, MONETKA):
+- Функция подбрасывает монетку

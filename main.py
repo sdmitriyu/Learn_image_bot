@@ -4,7 +4,7 @@ import io
 from telebot import types
 import random
 from conf import TOKEN
-from data import JOKES, COMPLIMENTS
+from data import JOKES, COMPLIMENTS, MONETKA
 
 bot = telebot.TeleBot(TOKEN)
 user_states = {}  # Хранение информации о пользователях
@@ -51,10 +51,12 @@ def get_options_keyboard():
     resize_for_sticker_btn = types.InlineKeyboardButton('Изготовление стикера', callback_data='making_sticker')
     random_jokes_btn = types.InlineKeyboardButton('Случайная шутка', callback_data='random_jokes')
     random_compliments_btn = types.InlineKeyboardButton('Случайный комплимент', callback_data='Random_Compliment')
+    randon_coin_btn = types.InlineKeyboardButton('Подбтосить монетку', callback_data='Flip a Coin')
     keyboard.add(pixelate_btn, ascii_btn, negative_btn)
     keyboard.add(reflection_horizontal_btn, reflection_vertical_btn)
     keyboard.add(heat_map_btn, resize_for_sticker_btn)
     keyboard.add(random_jokes_btn, random_compliments_btn)
+    keyboard.add(randon_coin_btn)
     return keyboard
 
 
@@ -88,6 +90,9 @@ def callback_query(call):
     elif call.data == 'Random_Compliment':
         bot.answer_callback_query(call.id, 'Случайный комплимент')
         compliment_rend(call.message, COMPLIMENTS)
+    elif call.data == 'Flip a Coin':
+        bot.answer_callback_query(call.id, 'Подбрасываем монетку')
+        coin_rend(call.message, MONETKA)
 
 
 # Функция преобразования изображения в ASCII и отправки пользователю
@@ -284,6 +289,18 @@ def compliment_rend(message, COMPLIMENTS):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     jokes_rend(call.message, COMPLIMENTS)
+
+
+# Функция подбрасывает монетку
+def coin_rend(message, MONETKA):
+    coin = random.choice(MONETKA)
+    bot.reply_to(message, coin)
+
+
+# Обработчик вызова (callback)
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    coin_rend(call.message, MONETKA)
 
 
 # Запуск бота

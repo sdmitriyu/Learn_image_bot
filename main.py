@@ -10,15 +10,18 @@ bot = telebot.TeleBot(TOKEN)
 user_states = {}  # Хранение информации о пользователях
 
 
-# Обработчик команды /start и /help
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
+    '''Обработчик команды /start и /help'''
+
     bot.reply_to(message, "Привет! Пожалуйста, отправь мне фото.")
 
 
-# Обработчик фото
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
+
+    '''Обработчик фото'''
+
     photo = message.photo[-1]  # Берем самое большое фото
     file_info = bot.get_file(photo.file_id)
     downloaded_file = bot.download_file(file_info.file_path)
@@ -32,14 +35,16 @@ def handle_photo(message):
     bot.register_next_step_handler(message, set_ascii_chars)
 
 
-# Функция для установки пользовательских символов
 def set_ascii_chars(message):
+    '''Функция для установки пользовательских символов'''
+
     user_states[message.chat.id]['ascii_chars'] = message.text
     bot.reply_to(message, "Ваш набор символов сохранен! Выберите действие:", reply_markup=get_options_keyboard())
 
 
-# Функция создания клавиатуры с опциями
 def get_options_keyboard():
+    '''Функция создания клавиатуры с опциями'''
+
     keyboard = types.InlineKeyboardMarkup()
     pixelate_btn = types.InlineKeyboardButton("Pixelate", callback_data="pixelate")
     ascii_btn = types.InlineKeyboardButton("ASCII Art", callback_data="ascii")
@@ -60,9 +65,11 @@ def get_options_keyboard():
     return keyboard
 
 
-# Обработчик нажатий на кнопки клавиатуры
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
+
+    '''Обработчик нажатий на кнопки клавиатуры'''
+
     if call.data == "pixelate":
         bot.answer_callback_query(call.id, "Огрубляем ваше изображение...")
         pixelate_and_send(call.message)
@@ -95,8 +102,9 @@ def callback_query(call):
         coin_rend(call.message, MONETKA)
 
 
-# Функция преобразования изображения в ASCII и отправки пользователю
 def ascii_and_send(message):
+    '''Функция преобразования изображения в ASCII и отправки пользователю'''
+
     photo_id = user_states[message.chat.id]['photo']
     file_info = bot.get_file(photo_id)
     downloaded_file = bot.download_file(file_info.file_path)
@@ -110,8 +118,9 @@ def ascii_and_send(message):
         bot.send_message(message.chat.id, "Набор символов не установлен.")
 
 
-# Функция преобразования изображения в ASCII с использованием пользовательских символов
 def image_to_ascii(image_stream, ascii_chars, new_width=40):
+    '''Функция преобразования изображения в ASCII с использованием пользовательских символов'''
+
     image = Image.open(image_stream).convert('L')
     width, height = image.size
     aspect_ratio = height / float(width)
@@ -129,8 +138,9 @@ def image_to_ascii(image_stream, ascii_chars, new_width=40):
     return ascii_art
 
 
-# Функция преобразования пикселей изображения в ASCII-символы с пользовательским набором
 def pixels_to_ascii(image, ascii_chars):
+    '''Функция преобразования пикселей изображения в ASCII-символы с пользовательским набором'''
+
     pixels = image.getdata()
     characters = ""
     for pixel in pixels:
@@ -138,8 +148,9 @@ def pixels_to_ascii(image, ascii_chars):
     return characters
 
 
-# Функция огрубления изображения и отправки пользователю
 def pixelate_and_send(message):
+    '''Функция огрубления изображения и отправки пользователю'''
+
     photo_id = user_states[message.chat.id]['photo']
     file_info = bot.get_file(photo_id)
     downloaded_file = bot.download_file(file_info.file_path)
@@ -161,8 +172,9 @@ def pixelate_and_send(message):
     bot.send_photo(message.chat.id, output_stream, caption="Ваше изображение огрублено!")
 
 
-# Функция для создания негатива изображения
 def negative_photo(message):
+    '''Функция для создания негатива изображения'''
+
     photo_id = user_states[message.chat.id]['photo']
     file_info = bot.get_file(photo_id)
     downloaded_file = bot.download_file(file_info.file_path)
@@ -183,8 +195,9 @@ def negative_photo(message):
     bot.send_photo(message.chat.id, output_stream, caption="Ваше изображение в негативе!")
 
 
-# Функция отражения изображения
 def mirror_image(message, direction):
+    '''Функция отражения изображения'''
+
     horizontal_image = None
     vertical_image = None
 
@@ -214,8 +227,9 @@ def mirror_image(message, direction):
     bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
 
 
-# Преобразование изображения в тепловую карту
 def convert_to_heatmap(message):
+    '''Преобразование изображения в тепловую карту'''
+
     photo_id = user_states[message.chat.id]['photo']
     file_info = bot.get_file(photo_id)
     downloaded_file = bot.download_file(file_info.file_path)
@@ -234,8 +248,9 @@ def convert_to_heatmap(message):
     bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
 
 
-# Изменяем размера изображения для стикера
 def resize_for_sticker(message):
+    '''Изменяем размера изображения для стикера'''
+
     new_width = None
     new_height = None
 
@@ -267,8 +282,9 @@ def resize_for_sticker(message):
     bot.send_photo(message.chat.id, output_stream)  # Отправляем фото пользователю
 
 
-# Функция вызывает случайную шутку из списка JOKES
 def jokes_rend(message, JOKES):
+    '''Функция вызывает случайную шутку из списка JOKES'''
+
     joke = random.choice(JOKES)
     bot.reply_to(message, joke)
 
@@ -279,8 +295,9 @@ def callback_query(call):
     jokes_rend(call.message, JOKES)
 
 
-# Функция вызывает случайный комплимент из списка COMPLIMENTS
 def compliment_rend(message, COMPLIMENTS):
+    '''Функция вызывает случайный комплимент из списка COMPLIMENTS'''
+
     compliment = random.choice(COMPLIMENTS)
     bot.reply_to(message, compliment)
 
@@ -291,8 +308,9 @@ def callback_query(call):
     jokes_rend(call.message, COMPLIMENTS)
 
 
-# Функция подбрасывает монетку
 def coin_rend(message, MONETKA):
+    '''Функция подбрасывает монетку'''
+
     coin = random.choice(MONETKA)
     bot.reply_to(message, coin)
 
